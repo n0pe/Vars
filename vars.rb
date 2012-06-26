@@ -4,8 +4,12 @@
 # This file is licensed under the The GNU General Public License version 3 or later. 
 # See the COPYRIGHT file.
 
-require 'getoptlong'
-require 'ruport'
+begin
+	require 'getoptlong'
+	require 'ruport'
+rescue LoadError => e
+	puts "[ERROR] #{e}"
+end
 
 class Vars
 	
@@ -32,6 +36,7 @@ class Vars
 		@count = 0
 		@vars = []
 		
+		usage if !@path
 		fatal ("\n"+@path+" is not a directory\n\n") if !File.directory?(@path)
 		puts "\n[+] Adjusting path" if @verbose
 		
