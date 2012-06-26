@@ -16,3 +16,5 @@ The options are:
 -v or --verbose = Run in verbose mode.<br/ >
 -s or --search = Search specific variables of function.<br/ >
 -l or --log = Specific the log file to save the scan result.<br/ >
+
+If you don't use the log file to save the data, this will be shown in the terminal with table-style.
