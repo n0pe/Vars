@@ -3,6 +3,14 @@ Vars
 
 Find variables and dangerous function in PHP sources.
 
+
+Install
+====
+
+<b>On debian/Ubuntu:</b>
+
+sudo gem install ruport
+
 Usage
 ====
 
