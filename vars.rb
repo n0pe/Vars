@@ -37,7 +37,7 @@ class Vars
 		@list = 0
 		@count = 0
 		@vars = []
-		@eval = ['system','exec','shell_exec','passthru']
+		@eval = ['system','exec','shell_exec','passthru','popen','eval','symlink','show_source','proc_open','parse_ini_file']
 		
 		usage if !@path
 		fatal ("\n"+@path+" is not a directory\n\n") if !File.directory?(@path)
