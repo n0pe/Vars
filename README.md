@@ -30,7 +30,7 @@ The options are:
 -l or --log = Specific the log file to save the scan result.<br/ >
 
 If you don't use the log file to save the data, this will be shown in the terminal with table-style.
-If you save data, the script ask you if want open the log in this moment. Press [ENTER] or Y to view the file with your default browser, or n to refuse.
+If you save data, the script ask you if want open the log in this moment. Press <b>[ENTER]</b> or <b> Y to view the file with your default browser, or <b>n</b> to refuse.
 
 Example
 ====
