@@ -10,7 +10,7 @@ n0pe.net@gmail.com
 Install
 ====
 
-<b>On debian/Ubuntu:</b>
+<b>On Debian/Ubuntu:</b>
 
 sudo gem install ruport
 
