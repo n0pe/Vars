@@ -24,6 +24,7 @@ class Vars
 					when /--max|-m/ then @limit = arg
 					when /--log|-l/ then @log_name = arg
 					when /--search|-s/ then @search = arg
+					when /--function|-f/ then @call = 1
 					when /--verbose|-v/ then @verbose = 1
 				end
 			end
@@ -32,9 +33,11 @@ class Vars
 		end
 		
 		@php = []
+		@functions = []
 		@list = 0
 		@count = 0
 		@vars = []
+		@eval = ['system','exec','shell_exec','passthru']
 		
 		usage if !@path
 		fatal ("\n"+@path+" is not a directory\n\n") if !File.directory?(@path)
@@ -45,48 +48,131 @@ class Vars
 			@php.push(n)
 			@list+=1
 		end
-		check
+		puts "\n[+] Total files: #{@list}\n\n"
+		
+		if @call
+			dangerous
+		else
+			find_var
+		end
 	end
 	
-	def check
-		puts "\n[+] Total files: #{@list}\n\n"
+	def find_var
 		@php.each do |files|
 			file = File.new(files, "r")
 			puts "[+] Checking #{files} ..." if @verbose
 			while (line = file.gets)
 				@count+=1
 				line.match(/\$_[A-Z]+\[.+?\]/) do |m|
-					m == nil ? next : @vars.push("#{@count}|#{m}|#{files}")
+					if @search && m != nil
+						if m.to_s.match(/#{@search}.*?/)
+							@vars.push("#{@count}|#{m}|#{files}")
+						end
+					else
+						m == nil ? next : @vars.push("#{@count}|#{m}|#{files}")
+					end
 				end
 			end
 			file.close
 			@count = 0
 		end
 		puts "\n"
-		@log_name != nil ? write_log : show_var
+		if @log_name != nil 
+			write_log(1)
+		else
+			puts "[+] Searching of variable #{@search}\n\n" if !@search.empty?
+			table = Ruport::Data::Table.new :column_names => [:Name, :Type, :Source, :Line]
+			@vars.uniq.each do |var|
+				tmp = var.split('|')
+				line = tmp[0]
+				name = tmp[1]
+				files = tmp[2]
+			
+				content = var[/\$_[A-Z]+\[.+?\]/]
+				content = content.gsub!(/\$_[A-Z]+/, "")
+			
+				type = var[/\$\_[A-Z]+/]
+			
+				type = type.gsub(/\$_/, '')
+			
+				if !@search.empty?
+					if content =~ /#{@search}/
+						table << [name, type, files, line]
+					end
+				else
+					table << [name, type, files, line]
+				end
+			end
+			puts table.to_text
+		end
+	end
+	
+	def dangerous
+		table = Ruport::Data::Table.new :column_names => [:Name, :Source, :Line]
+		@php.each do |files|
+			file = File.new(files, "r")
+			puts "[+] Checking #{files} ..." if @verbose
+			while (line = file.gets)
+				@count+=1
+				@eval.each{|fe|
+					line.match(/#{fe}\(.*?\)/) do |m|
+						if @search.empty?
+							content = m.to_s[/#{fe}/]
+							@functions.push("#{content}|#{files}|#{@count}")
+							table << [content, files, @count] if m != nil
+						else
+							if m.to_s.match(/#{@search}.*?/)
+								@functions.push("#{m}|#{files}|#{@count}")
+								table << [m, files, @count]
+							end
+						end
+								
+					end
+				}
+			end
+			@count=0
+		end
+		write_log(0) if @log_name != nil
+		puts table.to_text if @log_name == nil
 	end
 	
 	
-	def write_log
+	def write_log(wi)
 		puts "[+] Writing log file..." if @verbose
 		raise "Can't open file #{@log_name}" if !@log = File.new(@log_name, "w+")
 		@log.write("<html><head><link rel='stylesheet' type='text/css' href='class.css'/><title>Vars Log</title></head><body>")
-		@log.write("<table><tr><th>Name</th><th>Type</th><th>Source</th><th>Line</th></tr>")
-		
-		@vars.uniq.each do |var|
-		
-			tmp = var.split('|')
-			line = tmp[0]
-			name = tmp[1]
-			files = tmp[2]
-			
-			
-			type = var[/\$\_[A-Z]+/]
-			
-			type = type.gsub(/\$_/, '')
-			
-			@log.write("<tr><th class='spec'>#{name}</th><td>#{type}</td><td>#{files}</td><td>#{line}</td></tr>")
+		if wi != 0
+			@log.write("<table><tr><th>Name</th><th>Type</th><th>Source</th><th>Line</th></tr>")
+		else
+			@log.write("<table><tr><th>Content</th><th>Source</th><th>Line</th></tr>")
 		end
+		
+		if wi == 1
+			@vars.uniq.each do |var|
+		
+				tmp = var.split('|')
+				line = tmp[0]
+				name = tmp[1]
+				files = tmp[2]
+			
+			
+				type = var[/\$\_[A-Z]+/]
+			
+				type = type.gsub(/\$_/, '')
+			
+				@log.write("<tr><th class='spec'>#{name}</th><td>#{type}</td><td>#{files}</td><td>#{line}</td></tr>")
+			end
+		else
+			@functions.uniq.each do |f|
+				tmp = f.split('|')
+				content = tmp[0]
+				files = tmp[1]
+				line = tmp[2]
+				
+				@log.write("<tr><th class='spec'>#{content}</th></td><td>#{files}</td><td>#{line}</td></tr>")
+			end
+		end
+				
 		@log.write("</table></body></html>")
 		puts "[+] Log file successfully written\n\n"
 		puts "Open log file? Y/n"
@@ -144,6 +230,7 @@ opts = GetoptLong.new(
   [ '--max', '-m', GetoptLong::REQUIRED_ARGUMENT ],
   [ '--log', '-l', GetoptLong::REQUIRED_ARGUMENT ],
   [ '--search', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  [ '--function', '-f', GetoptLong::NO_ARGUMENT ],
   [ '--verbose', '-v', GetoptLong::NO_ARGUMENT ]
 )
 
