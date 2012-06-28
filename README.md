@@ -12,7 +12,7 @@ Install
 
 <b>On Debian/Ubuntu:</b>
 
-sudo gem install ruport
+gem install ruport
 
 Usage
 ====
