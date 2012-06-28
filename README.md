@@ -35,25 +35,22 @@ If you save data, the script ask you if want open the log in this moment. Press 
 Example
 ====
 
-./vars.rb -d test
+<i>./vars.rb -d test</i>
 
 Open all files .php in the direcotory named "test" and show the information if variables in terminal.
 <br><br>
 
-./vars.rb -d test -s lol -l a.html
+<i>./vars.rb -d test -s lol -l a.html</i>
 
 Open all files .php in the directory named "test", find the variable "lol" and save data in "a.html".
 <br><br>
 
-./vars.rb -d test -f
+<i>./vars.rb -d test -f</i>
 
 Open all files .php in the directory named "test" and find all dangerous function.
 <br><br>
 
-./vars.rb -d test -f -s lol
+<i>./vars.rb -d test -f -s lol</i>
 
 Open all files.php in the directory named "test" and find all dangerous functions that contain the string "lol".
-
-
-Example output (cutted) of <i>./vars.rb -d wordpress</i>:
 
